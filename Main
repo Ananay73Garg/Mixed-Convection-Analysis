@@ -121,7 +121,7 @@ output_df = pd.DataFrame(results)
 with pd.ExcelWriter(file_path, engine='openpyxl', mode='a') as writer:
     output_df.to_excel(writer, sheet_name='Output', index=False)
 
-deg = input("Enter Degree of graphical accuracy(recommended = >2): ")
+deg = int(input("Enter Degree of graphical accuracy(recommended = >2): "))
 
 def polynomial_regression_plot(x_data, y_data, x_label, y_label, title, degree=3, color='b', scatter_color='r'):
     # Reshape x_data for PolynomialFeatures
