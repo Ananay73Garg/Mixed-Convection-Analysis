@@ -1,1 +1,7 @@
-# Mixed-Convection-Analysis
+![image](https://github.com/user-attachments/assets/a3324700-552b-40fa-9bcc-cc36fe5ad232)# Mixed-Convection-Analysis
+
+This study decisively investigates the behavior of buoyancy-driven mixed convection in side-vented cavities through comprehensive experimental and numerical analyses. The research effectively enhances our understanding of flow and temperature distribution patterns associated with mixed convection in these cavities. This phenomenon, resulting from the interplay between natural and forced convection, is prevalent in numerous engineering applications—including construction, cooling, and electrical systems.
+We conducted experiments in a meticulously controlled thermal environment, utilizing a constant electric power supply as the heat source. Simultaneously, we developed a robust computational fluid dynamics model to accurately simulate air temperature distribution within a side-vented cavity, adhering rigorously to the designated boundary conditions. The results of our fluid flow study are strongly supported by modeling data and predicted graphs that conform to the governing equations.
+This research aligns with Reynolds and Grashof's laws, effectively analyzing flow properties, patterns, and distributions. The computational model, designed as a 2-D representation, adheres to the Navier-Stokes continuity and constant energy boundary equations. Furthermore, this model provides valuable insights into the coexistence of natural and forced convection, cementing our understanding of this complex interaction. 
+
+https://drive.google.com/drive/folders/1HhhxTYduYnMprslZQIoHQxct3hYkr9tu?usp=sharing
