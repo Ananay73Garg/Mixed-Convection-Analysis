@@ -1,0 +1,177 @@
+import pandas as pd
+from sklearn.preprocessing import PolynomialFeatures # type: ignore
+from sklearn.linear_model import LinearRegression # type: ignore
+import numpy as np
+from openpyxl import load_workbook # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+plt.rcParams.update({'font.size': 22})
+
+
+# Adjusting the code to use numpy's uniform random number generator
+data = {
+    "Power Input (W)": np.sort(np.random.uniform(5, 10, 120)), 
+    "Air Velocity (m/s)": np.sort(np.random.uniform(1, 3, 120)),  
+    "Heated Temp 1": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 2": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 3": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 4": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 5": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 6": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 7": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 8": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 9": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 10": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 11": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 12": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 13": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 14": np.sort(np.random.uniform(350, 370, 120)),
+    "Heated Temp 15": np.sort(np.random.uniform(350, 370, 120)),
+    
+    "Adiabatic Temp 1": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 2": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 3": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 4": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 5": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 6": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 7": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 8": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 9": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 10": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 11": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 12": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 13": np.sort(np.random.uniform(305, 307, 120)),
+    "Adiabatic Temp 14": np.sort(np.random.uniform(305, 307, 120)),
+}
+
+# Create the DataFrame
+df = pd.DataFrame(data)
+
+# Save to Excel
+df.to_excel("input_data.xlsx", index=False, sheet_name="Input")
+
+
+
+sigma = 5.67e-8
+surface_area = 0.02
+air_thermal_conductivity = 0.026
+characteristic_length = 0.18
+air_viscosity = 1.81e-5
+gravity = 9.81
+
+emissivity = float(input("Enter the emissivity of the heated wall: "))
+ambient_temp = float(input("Enter the ambient temperature in Kelvin: "))
+
+beta = 1 / ambient_temp
+
+def calculate_avg_temperature(temps):
+    return np.mean(temps)
+
+def calculate_radiative_loss(emissivity, surface_area, avg_temp_wall, avg_temp_adiabatic):
+    return emissivity * sigma * surface_area * (avg_temp_wall ** 4 - avg_temp_adiabatic ** 4)
+
+def calculate_parameters(air_velocity, q_cv, ambient_temp, avg_temp_wall):
+    delta_T = avg_temp_wall - ambient_temp
+    re = (air_velocity * characteristic_length) / air_viscosity
+    gr = (gravity * beta * delta_T * characteristic_length ** 3) / air_viscosity ** 2
+    ri = gr / re ** 2
+    h = q_cv / (surface_area * delta_T)
+    nu = h * characteristic_length / air_thermal_conductivity
+    return re, gr, ri, nu
+
+
+file_path = 'input_data.xlsx'
+data = pd.read_excel(file_path, sheet_name='Input')
+power_inputs = data['Power Input (W)']
+air_velocities = data['Air Velocity (m/s)']
+heated_wall_temps = data[[f'Heated Temp {i+1}' for i in range(15)]]
+adiabatic_wall_temps = data[[f'Adiabatic Temp {i+1}' for i in range(14)]]
+
+results = {
+    'Power Input (W)': [],
+    'Air Velocity (m/s)': [],
+    'Reynolds Number': [],
+    'Nusselt Number': [],
+    'Convective Heat Loss (Qcv, W)': [],
+    'Radiative Heat Loss (Qrd, W)': [],
+    'Richardson Number': []
+}
+
+for i in range(len(power_inputs)):
+    power_input = power_inputs[i]
+    air_velocity = air_velocities[i]
+    
+    avg_temp_wall = calculate_avg_temperature(heated_wall_temps.iloc[i])
+    avg_temp_adiabatic = calculate_avg_temperature(adiabatic_wall_temps.iloc[i])
+    
+    q_rd = calculate_radiative_loss(emissivity, surface_area, avg_temp_wall, avg_temp_adiabatic)
+    q_cv = power_input - q_rd
+    re, gr, ri, nu = calculate_parameters(air_velocity, q_cv, ambient_temp, avg_temp_wall)
+    
+    results['Power Input (W)'].append(power_input)
+    results['Air Velocity (m/s)'].append(air_velocity)
+    results['Reynolds Number'].append(re)
+    results['Nusselt Number'].append(nu)
+    results['Convective Heat Loss (Qcv, W)'].append(q_cv)
+    results['Radiative Heat Loss (Qrd, W)'].append(q_rd)
+    results['Richardson Number'].append(ri)
+
+output_df = pd.DataFrame(results)
+
+
+with pd.ExcelWriter(file_path, engine='openpyxl', mode='a') as writer:
+    output_df.to_excel(writer, sheet_name='Output', index=False)
+
+deg = input("Enter Degree of graphical accuracy(recommended = >2): ")
+
+def polynomial_regression_plot(x_data, y_data, x_label, y_label, title, degree=3, color='b', scatter_color='r'):
+    # Reshape x_data for PolynomialFeatures
+    x_reshaped = x_data.reshape(-1, 1)
+    
+    # Create a PolynomialFeatures object with the desired degree
+    poly = PolynomialFeatures(degree)
+    x_poly = poly.fit_transform(x_reshaped)
+    
+    # Create and fit the polynomial regression model
+    model = LinearRegression()
+    model.fit(x_poly, y_data)
+    
+    # Predict y values using the polynomial model
+    y_pred = model.predict(x_poly)
+    
+    # Plot the data and polynomial regression curve
+    plt.figure(figsize=(14, 8))
+    plt.plot(x_data, y_pred, color=color)
+    plt.scatter(x_data, y_data, marker='o', color=scatter_color)
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+polynomial_regression_plot(
+    np.array(results['Reynolds Number']),
+    np.array(results['Nusselt Number']),
+    "Reynolds Number (Re)",
+    "Nusselt Number (Nu)",
+    "Reynolds Number vs Nusselt Number",
+    degree=deg  
+)
+
+polynomial_regression_plot(
+    np.array(results['Richardson Number']),
+    np.array(results['Nusselt Number']),
+    "Richardson Number (Ri)",
+    "Nusselt Number (Nu)",
+    "Richardson Number vs Nusselt Number",
+    degree=deg
+)
+
+polynomial_regression_plot(
+    np.array(results['Reynolds Number']),
+    np.array(results['Richardson Number']),
+    "Reynolds Number (Re)",
+    "Richardson Number (Ri)",
+    "Richardson Number vs Reynolds Number",
+    degree=deg
+)
